@@ -1,0 +1,10 @@
+{
+  "name": "noir-private-casino",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NOIR Private Casino static HTML5 experience",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  }
+}
