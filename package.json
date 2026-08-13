@@ -5,6 +5,7 @@
   "description": "NOIR Private Casino static HTML5 experience",
   "type": "module",
   "scripts": {
-    "build": "node scripts/build.mjs"
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.mjs"
   }
 }
