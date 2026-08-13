@@ -19,6 +19,10 @@ Open `index.html` in a modern browser. No dependency installation or build step 
 
 ## Cloudflare Pages
 
-The project is static and can be deployed directly from the repository. Use no build command and set the output directory to the repository root.
+The project remains fully static and dependency-free. The included build command only copies the three production files into `dist/` so it works with Cloudflare's standard Git deployment settings:
+
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Root directory: repository root
 
 This prototype uses fictional credits only. It does not include payments, cryptocurrency, real-money wagering, accounts or a backend.
