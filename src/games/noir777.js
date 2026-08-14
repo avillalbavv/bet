@@ -22,6 +22,7 @@ export const PAYLINES = Object.freeze([
 ]);
 
 const FREE_SPINS = { 3: 8, 4: 12, 5: 20 };
+export const SLOT_PAYOUT_SCALE = 1.65;
 
 export function createSlotGrid() {
   return Array.from({ length: 5 }, () => Array.from({ length: 3 }, () => weightedPick(SLOT_SYMBOLS)));
@@ -48,7 +49,7 @@ export function evaluateSlot(grid, totalBet) {
   PAYLINES.forEach((line, lineIndex) => {
     const result = bestLineWin(line.map((row, column) => grid[column][row]));
     if (result.multiplier) {
-      const amount = result.multiplier * lineBet;
+      const amount = result.multiplier * SLOT_PAYOUT_SCALE * lineBet;
       payout += amount;
       wins.push({ lineIndex, line, ...result, amount });
     }
@@ -56,7 +57,7 @@ export function evaluateSlot(grid, totalBet) {
   const scatters = grid.flat().filter((symbol) => symbol.id === "SCATTER").length;
   const scatterSymbol = SLOT_SYMBOLS.find((symbol) => symbol.id === "SCATTER");
   const scatterMultiplier = scatterSymbol.pay[Math.min(5, scatters) - 1] || 0;
-  payout += scatterMultiplier * totalBet;
+  payout += scatterMultiplier * SLOT_PAYOUT_SCALE * totalBet;
   return { payout: Math.round(payout), wins, scatters, freeSpins: FREE_SPINS[Math.min(5, scatters)] || 0 };
 }
 
@@ -79,7 +80,7 @@ export function theoreticalSlotRtp() {
     const multiplier = scatter.pay[Math.min(5, count) - 1] || 0;
     scatterExpectation += combinations * p ** count * (1 - p) ** (15 - count) * multiplier;
   }
-  return lineExpectation + scatterExpectation;
+  return (lineExpectation + scatterExpectation) * SLOT_PAYOUT_SCALE;
 }
 
 function binomial(n, k) {
