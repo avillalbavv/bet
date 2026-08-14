@@ -12,7 +12,7 @@ button:disabled{cursor:not-allowed}
 .casino-header .audio-button,.casino-header .notice-button{min-width:38px!important}
 .casino-header .profile-chip{max-width:150px!important;overflow:hidden!important}
 .casino-header .profile-chip>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.side-nav{grid-column:1!important;grid-row:2!important;position:fixed!important;inset:var(--header-h) auto 0 0!important;width:var(--rail-w)!important;overflow-y:auto!important;z-index:50!important}
+.side-nav{grid-column:1!important;grid-row:2!important;position:fixed!important;inset:var(--header-h) auto 0 0!important;width:var(--rail-w)!important;overflow-x:hidden!important;overflow-y:auto!important;z-index:50!important}
 .casino-main{grid-column:2!important;grid-row:2!important;margin-left:0!important;padding-top:0!important;min-width:0!important;overflow:visible!important}
 .lobby-page,.profile-page,.game-page{width:100%;max-width:1600px;margin-inline:auto}
 
@@ -33,7 +33,7 @@ button:disabled{cursor:not-allowed}
 .game-card:hover{transform:translate(var(--px,0),calc(var(--py,0) - 7px))!important}
 .game-card:focus-visible{outline:1px solid var(--gold);outline-offset:5px}
 .game-art{width:100%;max-width:100%;transform:none!important}
-.game-badge{position:absolute;z-index:8;top:16px;left:16px;padding:6px 9px;border-left:2px solid currentColor;background:rgba(2,4,3,.76);font:700 .43rem var(--sans);letter-spacing:.13em;color:var(--gold);backdrop-filter:blur(5px)}
+.game-art>.game-badge{position:absolute;z-index:8;top:16px;right:auto;bottom:auto;left:16px;width:auto;padding:6px 9px;border-left:2px solid currentColor;background:rgba(2,4,3,.76);font:700 .43rem/1 var(--sans)!important;letter-spacing:.13em;color:var(--gold);text-shadow:none!important;backdrop-filter:blur(5px)}
 .game-slot .game-badge{color:#ff5da7}.game-roulette .game-badge{color:#39e59b}.game-dice .game-badge{color:#65ebff}.game-mines .game-badge{color:#9f84ff}.game-crash .game-badge{color:#ff8e4b}.game-baccarat .game-badge{color:#e3a0b7}
 .favorite{min-width:40px!important;width:40px!important;height:40px!important}
 .card-play{min-height:46px!important}
