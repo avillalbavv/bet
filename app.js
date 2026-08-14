@@ -17,6 +17,7 @@ let authMode = "login", lobbyCategory = "popular", currentGame = null, blackjack
 let heroIndex = 0;
 let rouletteBets = [], rouletteRenderer = null, selectedRouletteChip = 10000;
 let minesRound = null, crashRound = null;
+history.scrollRestoration = "manual";
 
 const GAMES = [
   { id:"slot", name:"NOIR 777", category:"slots", tag:"VOLATILIDAD ALTA", badge:"EXCLUSIVO", art:"7", color:"red", description:"20 líneas · Comodín · Dispersión" },
@@ -49,9 +50,9 @@ const icon = (name) => {
 function route() {
   const path = location.hash.slice(1) || (user() ? "/lobby" : "/");
   closeModal();
-  window.scrollTo(0, 0);
-  requestAnimationFrame(() => window.scrollTo(0, 0));
-  setTimeout(() => window.scrollTo(0, 0), 60);
+  window.scrollTo({ top:0, left:0, behavior:"instant" });
+  requestAnimationFrame(() => window.scrollTo({ top:0, left:0, behavior:"instant" }));
+  setTimeout(() => window.scrollTo({ top:0, left:0, behavior:"instant" }), 60);
   experience.setScene(path.startsWith("/game/") ? path.split("/").at(-1) : path === "/lobby" ? "lobby" : "landing");
   if (path === "/admin") return renderAdmin();
   if (path.startsWith("/game/")) return user() ? renderGame(path.split("/").at(-1)) : go("/auth");
@@ -64,7 +65,7 @@ function route() {
 function go(path) {
   const destination = path.split("?")[0];
   const accent = destination.includes("slot") ? "magenta" : destination.includes("roulette") ? "green" : destination.includes("blackjack") ? "cream" : "gold";
-  experience.transition(() => { window.scrollTo(0, 0); if (location.hash === "#" + destination) route(); else location.hash = destination; }, accent);
+  experience.transition(() => { window.scrollTo({ top:0, left:0, behavior:"instant" }); if (location.hash === "#" + destination) route(); else location.hash = destination; }, accent);
 }
 
 function renderLanding() {
