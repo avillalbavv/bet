@@ -245,7 +245,7 @@ export class NoirExperience {
     });
     setInterval(() => {
       this.currentJackpot += Math.floor(Math.random() * 97) + 17;
-      document.querySelectorAll("[data-live-jackpot]").forEach((node) => this.animateNumber(node, this.currentJackpot, "₲ "));
+      document.querySelectorAll("[data-live-jackpot]").forEach((node) => this.animateNumber(node, this.currentJackpot, "Gs. "));
     }, 2800);
   }
 
@@ -322,10 +322,10 @@ export class NoirExperience {
     const tier = multiplier >= 500 ? "PREMIO LEGENDARIO" : multiplier >= 100 ? "PREMIO ÉPICO" : multiplier >= 50 ? "PREMIO MEGA" : multiplier >= 20 ? "GRAN PREMIO" : "GANANCIA";
     const overlay = document.createElement("div");
     overlay.className = `win-celebration tier-${tier.toLowerCase().replace(/\s/g, "-")}`;
-    overlay.innerHTML = `<div class="win-rays"></div><div class="win-coins">${Array.from({ length: 24 }, (_, index) => `<i style="--i:${index}"></i>`).join("")}</div><p>${tier}</p><strong data-win-counter>₲ 0</strong><button>SALTAR</button>`;
+    overlay.innerHTML = `<div class="win-rays"></div><div class="win-coins">${Array.from({ length: 24 }, (_, index) => `<i style="--i:${index}"></i>`).join("")}</div><p>${tier}</p><strong data-win-counter>Gs. 0</strong><button>SALTAR</button>`;
     document.body.appendChild(overlay);
     this.audio.play(multiplier >= 20 ? "bigWin" : "win");
-    this.animateNumber(overlay.querySelector("[data-win-counter]"), amount, "₲ ");
+    this.animateNumber(overlay.querySelector("[data-win-counter]"), amount, "Gs. ");
     const close = () => { overlay.classList.add("is-leaving"); setTimeout(() => overlay.remove(), 500); };
     overlay.querySelector("button").onclick = close;
     setTimeout(close, multiplier >= 20 ? 3600 : 1800);
