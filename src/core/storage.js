@@ -58,7 +58,7 @@ export function createUser({ username, email, passwordHash, avatar = "N" }) {
     dailyReward: { lastClaimAt: null, streak: 0 },
     stats: { totalWagered: 0, totalWon: 0, biggestWin: 0, gamesPlayed: 0, jackpotsWon: 0, byGame: {} },
     history: [],
-    notifications: [{ id: "welcome", title: "BIENVENIDO A NOIR", body: "₲ 500.000 virtuales y 20 giros gratis acreditados.", read: false }],
+    notifications: [{ id: "welcome", title: "BIENVENIDO A NOIR", body: "Gs. 500.000 virtuales y 20 giros gratis acreditados.", read: false }],
   };
 }
 
