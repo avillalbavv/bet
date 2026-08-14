@@ -196,6 +196,7 @@ export class NoirExperience {
     this.ambient = new AmbientCanvas(settings);
     this.currentJackpot = 847_529_300;
     this.introFinished = false;
+    document.body.dataset.motion = settings.motion;
     this.installGlobalEvents();
     this.showIntro();
   }
@@ -305,17 +306,19 @@ export class NoirExperience {
     container.querySelector(".modal-close").onclick = () => container.innerHTML = "";
     container.querySelector(".modal-backdrop").onclick = (event) => { if (event.target === event.currentTarget) container.innerHTML = ""; };
     container.querySelectorAll("[data-audio]").forEach((control) => {
-      control.onchange = control.onclick = (event) => {
+      const change = (event) => {
         const key = event.currentTarget.dataset.audio;
         if (key === "music" || key === "sfx") this.settings[key] = !this.settings[key];
         if (key === "mute") this.settings.muted = !this.settings.muted;
         if (key === "volume") this.settings.masterVolume = Number(event.currentTarget.value);
-        if (key === "motion") this.settings.motion = event.currentTarget.value;
+        if (key === "motion") { this.settings.motion = event.currentTarget.value; document.body.dataset.motion = this.settings.motion; }
         if (key === "quality") { this.settings.quality = event.currentTarget.value; this.ambient.resize(); }
         this.audio.unlock();
         this.audio.applySettings();
         this.openAudioPanel(container);
       };
+      if (control.matches("button")) control.onclick = change;
+      else control.onchange = change;
     });
   }
 }

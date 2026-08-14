@@ -171,3 +171,7 @@ body[data-transition="cream"] .page-transition b{color:var(--cream)}
 
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.001ms!important}.intro{display:none}.page-transition{display:none}}
 body:has(.audio-console select[data-audio="motion"] option[value="off"]:checked) *{animation-play-state:paused}
+.auth-wheel{animation-name:authWheelSpin}
+@keyframes authWheelSpin{to{transform:rotateX(58deg) rotateZ(360deg)}}
+body[data-motion="reduced"] *{animation-duration:calc(var(--motion-duration,1s)*2)!important}
+body[data-motion="off"] *{animation-play-state:paused!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
