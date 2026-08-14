@@ -8,6 +8,7 @@ class NoirAudio {
     this.master = null;
     this.music = null;
     this.sfx = null;
+    this.ambience = null;
     this.sequence = null;
     this.step = 0;
     this.scene = "lobby";
@@ -24,8 +25,10 @@ class NoirAudio {
     this.master = this.context.createGain();
     this.music = this.context.createGain();
     this.sfx = this.context.createGain();
+    this.ambience = this.context.createGain();
     this.music.connect(this.master);
     this.sfx.connect(this.master);
+    this.ambience.connect(this.master);
     this.master.connect(this.context.destination);
     this.applySettings();
     this.startAmbience();
@@ -35,8 +38,9 @@ class NoirAudio {
     if (!this.context) return;
     const now = this.context.currentTime;
     this.master.gain.setTargetAtTime(this.settings.muted ? 0 : this.settings.masterVolume, now, 0.05);
-    this.music.gain.setTargetAtTime(this.settings.music ? 0.24 : 0, now, 0.2);
-    this.sfx.gain.setTargetAtTime(this.settings.sfx ? 0.7 : 0, now, 0.05);
+    this.music.gain.setTargetAtTime(this.settings.music ? this.settings.musicVolume : 0, now, 0.25);
+    this.sfx.gain.setTargetAtTime(this.settings.sfx ? this.settings.sfxVolume : 0, now, 0.05);
+    this.ambience.gain.setTargetAtTime(this.settings.ambience ? this.settings.ambienceVolume : 0, now, 0.3);
     this.persist();
   }
 
@@ -61,6 +65,14 @@ class NoirAudio {
     oscillator.stop(now + duration + 0.02);
   }
 
+  noise(duration=.12,volume=.06,highpass=300){
+    if(!this.context||!this.settings.sfx||this.settings.muted)return;
+    const frames=Math.max(1,Math.floor(this.context.sampleRate*duration)),buffer=this.context.createBuffer(1,frames,this.context.sampleRate),data=buffer.getChannelData(0);
+    for(let index=0;index<frames;index+=1)data[index]=Math.random()*2-1;
+    const source=this.context.createBufferSource(),filter=this.context.createBiquadFilter(),gain=this.context.createGain(),now=this.context.currentTime;
+    source.buffer=buffer;filter.type="highpass";filter.frequency.value=highpass;gain.gain.setValueAtTime(volume,now);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);source.connect(filter);filter.connect(gain);gain.connect(this.sfx);source.start(now);
+  }
+
   play(name) {
     const sounds = {
       hover: () => this.tone(520, 0.04, { volume: 0.035, to: 620 }),
@@ -70,6 +82,17 @@ class NoirAudio {
       stop: () => this.tone(105, 0.12, { type: "square", volume: 0.11, to: 72 }),
       chip: () => this.tone(1150, 0.07, { type: "triangle", volume: 0.09, to: 730 }),
       card: () => this.tone(330, 0.09, { type: "triangle", volume: 0.06, to: 190 }),
+      ruletaInicia:()=>{this.tone(82,.55,{type:"sawtooth",volume:.09,to:210});this.noise(.35,.035,1200);},
+      ruletaClic:()=>{this.tone(1380,.035,{type:"square",volume:.025,to:920});},
+      bolaCae:()=>{this.noise(.12,.08,850);this.tone(760,.18,{type:"triangle",volume:.08,to:240});},
+      anticipacion:()=>[220,277,330,415].forEach((note,index)=>setTimeout(()=>this.tone(note,.38,{type:"sawtooth",volume:.07,to:note*1.15}),index*150)),
+      dispersion:()=>{this.noise(.4,.06,1800);[659,988,1318].forEach((note,index)=>setTimeout(()=>this.tone(note,.5,{volume:.1}),index*95));},
+      dados:()=>{this.noise(.55,.11,120);this.tone(95,.45,{type:"square",volume:.08,to:58});},
+      gema:()=>{this.tone(880,.24,{volume:.1,to:1320});this.tone(1760,.16,{volume:.04});},
+      mina:()=>{this.noise(.55,.16,80);this.tone(70,.48,{type:"sawtooth",volume:.14,to:35});},
+      crashInicia:()=>this.tone(85,.8,{type:"sawtooth",volume:.08,to:540}),
+      crash:()=>{this.noise(.7,.18,60);this.tone(110,.6,{type:"square",volume:.14,to:34});},
+      perdida:()=>this.tone(150,.32,{type:"triangle",volume:.07,to:82}),
       win: () => [523, 659, 784, 1046].forEach((note, index) => setTimeout(() => this.tone(note, 0.28, { volume: 0.11 }), index * 75)),
       bigWin: () => [392, 523, 659, 784, 1046, 1318].forEach((note, index) => setTimeout(() => this.tone(note, 0.42, { type: "triangle", volume: 0.13 }), index * 65)),
       error: () => this.tone(120, 0.26, { type: "sawtooth", volume: 0.08, to: 70 }),
@@ -84,6 +107,10 @@ class NoirAudio {
       slot: [65.41, 98, 73.42, 110],
       roulette: [55, 73.42, 82.41, 61.74],
       blackjack: [49, 65.41, 73.42, 55],
+      dice:[73.42,110,82.41,123.47],
+      baccarat:[46.25,61.74,69.3,51.91],
+      mines:[65.41,77.78,98,73.42],
+      crash:[82.41,110,123.47,146.83],
     };
     const pulse = () => {
       if (!this.context || !this.settings.music || this.settings.muted) return;
@@ -105,6 +132,10 @@ class NoirAudio {
       bass.connect(filter); pad.connect(filter); filter.connect(gain); gain.connect(this.music);
       bass.start(now); pad.start(now); bass.stop(now + 1.5); pad.stop(now + 1.5);
       this.step += 1;
+      if(this.settings.ambience&&this.step%8===0){
+        const ambientGain=this.context.createGain(),ambientTone=this.context.createOscillator();
+        ambientTone.type="sine";ambientTone.frequency.value=1500+Math.random()*800;ambientGain.gain.setValueAtTime(.0001,now);ambientGain.gain.exponentialRampToValueAtTime(.018,now+.03);ambientGain.gain.exponentialRampToValueAtTime(.0001,now+.35);ambientTone.connect(ambientGain);ambientGain.connect(this.ambience);ambientTone.start(now);ambientTone.stop(now+.4);
+      }
     };
     pulse();
     this.sequence = setInterval(pulse, 1050);
@@ -140,13 +171,13 @@ class AmbientCanvas {
 
   resize() {
     const quality = this.quality();
-    const scale = quality === "high" ? Math.min(devicePixelRatio, 1.5) : 1;
+    const scale = quality === "ultra" ? Math.min(devicePixelRatio, 2) : quality === "high" ? Math.min(devicePixelRatio, 1.5) : 1;
     this.canvas.width = innerWidth * scale;
     this.canvas.height = innerHeight * scale;
     this.canvas.style.width = innerWidth + "px";
     this.canvas.style.height = innerHeight + "px";
     this.context.setTransform(scale, 0, 0, scale, 0, 0);
-    const count = quality === "high" ? 70 : quality === "medium" ? 38 : 18;
+    const count = quality === "ultra" ? 100 : quality === "high" ? 70 : quality === "medium" ? 38 : 18;
     this.particles = Array.from({ length: count }, () => ({
       x: Math.random() * innerWidth,
       y: Math.random() * innerHeight,
@@ -197,6 +228,7 @@ export class NoirExperience {
     this.currentJackpot = 847_529_300;
     this.introFinished = false;
     document.body.dataset.motion = settings.motion;
+    document.body.dataset.quality = this.ambient.quality();
     this.installGlobalEvents();
     this.showIntro();
   }
@@ -222,7 +254,7 @@ export class NoirExperience {
     const intro = document.createElement("div");
     intro.id = "noirIntro";
     intro.className = seen ? "intro intro-short" : "intro";
-    intro.innerHTML = `<div class="intro-light"></div><div class="intro-mark"><span>N</span><strong>NOIR</strong><small>CASINO · ASUNCIÓN</small></div><div class="intro-line"></div><button>SKIP INTRO</button>`;
+    intro.innerHTML = `<div class="intro-light"></div><div class="intro-mark"><span>N</span><strong>NOIR</strong><small>CASINO · ASUNCIÓN</small></div><div class="intro-line"></div><button>SALTAR INTRO</button>`;
     document.body.appendChild(intro);
     const finish = () => {
       if (this.introFinished) return;
@@ -287,10 +319,10 @@ export class NoirExperience {
   }
 
   winCelebration(amount, multiplier = 1) {
-    const tier = multiplier >= 500 ? "LEGENDARY" : multiplier >= 100 ? "EPIC WIN" : multiplier >= 50 ? "MEGA WIN" : multiplier >= 20 ? "BIG WIN" : "WIN";
+    const tier = multiplier >= 500 ? "PREMIO LEGENDARIO" : multiplier >= 100 ? "PREMIO ÉPICO" : multiplier >= 50 ? "PREMIO MEGA" : multiplier >= 20 ? "GRAN PREMIO" : "GANANCIA";
     const overlay = document.createElement("div");
     overlay.className = `win-celebration tier-${tier.toLowerCase().replace(/\s/g, "-")}`;
-    overlay.innerHTML = `<div class="win-rays"></div><div class="win-coins">${Array.from({ length: 24 }, (_, index) => `<i style="--i:${index}"></i>`).join("")}</div><p>${tier}</p><strong data-win-counter>₲ 0</strong><button>SKIP</button>`;
+    overlay.innerHTML = `<div class="win-rays"></div><div class="win-coins">${Array.from({ length: 24 }, (_, index) => `<i style="--i:${index}"></i>`).join("")}</div><p>${tier}</p><strong data-win-counter>₲ 0</strong><button>SALTAR</button>`;
     document.body.appendChild(overlay);
     this.audio.play(multiplier >= 20 ? "bigWin" : "win");
     this.animateNumber(overlay.querySelector("[data-win-counter]"), amount, "₲ ");
@@ -300,7 +332,7 @@ export class NoirExperience {
   }
 
   openAudioPanel(container) {
-    container.innerHTML = `<div class="modal-backdrop audio-backdrop"><section class="audio-console"><button class="modal-close">×</button><p class="overline">NOIR SOUND SYSTEM</p><h2>ATMOSPHERE CONTROL</h2><label><span>MUSIC</span><button data-audio="music" class="console-switch ${this.settings.music ? "active" : ""}">${this.settings.music ? "ON" : "OFF"}</button></label><label><span>SFX</span><button data-audio="sfx" class="console-switch ${this.settings.sfx ? "active" : ""}">${this.settings.sfx ? "ON" : "OFF"}</button></label><label><span>MASTER VOLUME</span><input data-audio="volume" type="range" min="0" max="1" step="0.05" value="${this.settings.masterVolume}"></label><label><span>MOTION</span><select data-audio="motion"><option value="full">FULL</option><option value="reduced">REDUCED</option><option value="off">OFF</option></select></label><label><span>VISUAL QUALITY</span><select data-audio="quality"><option value="auto">AUTO</option><option value="high">HIGH</option><option value="medium">MEDIUM</option><option value="low">LOW</option></select></label><button class="mute-control ${this.settings.muted ? "active" : ""}" data-audio="mute">${this.settings.muted ? "UNMUTE NOIR" : "MUTE ALL"}</button></section></div>`;
+    container.innerHTML = `<div class="modal-backdrop audio-backdrop"><section class="audio-console"><button class="modal-close">×</button><p class="overline">SISTEMA DE SONIDO NOIR</p><h2>CONTROL DE ATMÓSFERA</h2><label><span>MÚSICA</span><button data-audio="music" class="console-switch ${this.settings.music ? "active" : ""}">${this.settings.music ? "SÍ" : "NO"}</button></label><label><span>EFECTOS</span><button data-audio="sfx" class="console-switch ${this.settings.sfx ? "active" : ""}">${this.settings.sfx ? "SÍ" : "NO"}</button></label><label><span>AMBIENTE</span><button data-audio="ambience" class="console-switch ${this.settings.ambience ? "active" : ""}">${this.settings.ambience ? "SÍ" : "NO"}</button></label><label><span>VOLUMEN GENERAL</span><input data-audio="masterVolume" type="range" min="0" max="1" step="0.05" value="${this.settings.masterVolume}"></label><label><span>VOLUMEN DE MÚSICA</span><input data-audio="musicVolume" type="range" min="0" max="1" step="0.05" value="${this.settings.musicVolume}"></label><label><span>VOLUMEN DE EFECTOS</span><input data-audio="sfxVolume" type="range" min="0" max="1" step="0.05" value="${this.settings.sfxVolume}"></label><label><span>VOLUMEN DE AMBIENTE</span><input data-audio="ambienceVolume" type="range" min="0" max="1" step="0.05" value="${this.settings.ambienceVolume}"></label><label><span>MOVIMIENTO</span><select data-audio="motion"><option value="full">COMPLETO</option><option value="reduced">REDUCIDO</option><option value="off">DESACTIVADO</option></select></label><label><span>CALIDAD VISUAL</span><select data-audio="quality"><option value="auto">AUTOMÁTICA</option><option value="ultra">ULTRA</option><option value="high">ALTA</option><option value="medium">MEDIA</option><option value="low">BAJA</option></select></label><button class="mute-control ${this.settings.muted ? "active" : ""}" data-audio="mute">${this.settings.muted ? "ACTIVAR SONIDO" : "SILENCIAR TODO"}</button></section></div>`;
     container.querySelector('[data-audio="motion"]').value = this.settings.motion;
     container.querySelector('[data-audio="quality"]').value = this.settings.quality;
     container.querySelector(".modal-close").onclick = () => container.innerHTML = "";
@@ -308,11 +340,11 @@ export class NoirExperience {
     container.querySelectorAll("[data-audio]").forEach((control) => {
       const change = (event) => {
         const key = event.currentTarget.dataset.audio;
-        if (key === "music" || key === "sfx") this.settings[key] = !this.settings[key];
+        if (key === "music" || key === "sfx" || key === "ambience") this.settings[key] = !this.settings[key];
         if (key === "mute") this.settings.muted = !this.settings.muted;
-        if (key === "volume") this.settings.masterVolume = Number(event.currentTarget.value);
+        if (["masterVolume","musicVolume","sfxVolume","ambienceVolume"].includes(key)) this.settings[key] = Number(event.currentTarget.value);
         if (key === "motion") { this.settings.motion = event.currentTarget.value; document.body.dataset.motion = this.settings.motion; }
-        if (key === "quality") { this.settings.quality = event.currentTarget.value; this.ambient.resize(); }
+        if (key === "quality") { this.settings.quality = event.currentTarget.value; this.ambient.resize(); document.body.dataset.quality = this.ambient.quality(); }
         this.audio.unlock();
         this.audio.applySettings();
         this.openAudioPanel(container);

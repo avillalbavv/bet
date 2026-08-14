@@ -1,11 +1,15 @@
 const STORAGE_KEY = "noir-casino-platform-v2";
-const VERSION = 3;
+const VERSION = 4;
 
 const DEFAULT_SETTINGS = Object.freeze({
   music: true,
   sfx: true,
+  ambience: true,
   muted: false,
   masterVolume: 0.55,
+  musicVolume: 0.48,
+  sfxVolume: 0.72,
+  ambienceVolume: 0.28,
   motion: "full",
   quality: "auto",
   introSeen: false,
@@ -13,8 +17,12 @@ const DEFAULT_SETTINGS = Object.freeze({
 
 export const DEFAULT_GAME_CONFIG = Object.freeze({
   slot: { enabled: true, minBet: 1000, maxBet: 250000, name: "NOIR 777" },
-  roulette: { enabled: true, minBet: 1000, maxBet: 500000, name: "Roulette Royale" },
+  roulette: { enabled: true, minBet: 1000, maxBet: 500000, name: "Ruleta Imperial", variant: "european" },
   blackjack: { enabled: true, minBet: 1000, maxBet: 500000, name: "Blackjack Elite" },
+  dice: { enabled: true, minBet: 1000, maxBet: 250000, name: "Dados Eléctricos" },
+  baccarat: { enabled: true, minBet: 1000, maxBet: 500000, name: "Baccarat Privé" },
+  mines: { enabled: true, minBet: 1000, maxBet: 250000, name: "Minas NOIR" },
+  crash: { enabled: true, minBet: 1000, maxBet: 250000, name: "Crash Volt" },
 });
 
 export function createDatabase() {
@@ -50,7 +58,7 @@ export function createUser({ username, email, passwordHash, avatar = "N" }) {
     dailyReward: { lastClaimAt: null, streak: 0 },
     stats: { totalWagered: 0, totalWon: 0, biggestWin: 0, gamesPlayed: 0, jackpotsWon: 0, byGame: {} },
     history: [],
-    notifications: [{ id: "welcome", title: "WELCOME TO NOIR", body: "₲ 500.000 virtuales y 20 free spins acreditados.", read: false }],
+    notifications: [{ id: "welcome", title: "BIENVENIDO A NOIR", body: "₲ 500.000 virtuales y 20 giros gratis acreditados.", read: false }],
   };
 }
 
@@ -65,17 +73,27 @@ export class LocalDatabase {
       const parsed = JSON.parse(this.storage.getItem(STORAGE_KEY));
       if (!parsed) return createDatabase();
       const fresh = createDatabase();
+      const games = Object.fromEntries(Object.entries(fresh.games).map(([id, config]) => [id, { ...config, ...(parsed.games?.[id] || {}) }]));
+      const notificationTranslations = {
+        "WELCOME TO NOIR": "BIENVENIDO A NOIR",
+        "FREE SPINS UNLOCKED": "GIROS GRATIS DESBLOQUEADOS",
+        "DAILY VAULT OPENED": "BÓVEDA DIARIA ABIERTA",
+        "TEST CREDITS": "CRÉDITOS DE PRUEBA",
+      };
       return {
         ...fresh,
         ...parsed,
         version: VERSION,
         jackpot: { ...fresh.jackpot, ...(parsed.jackpot || {}) },
         settings: { ...fresh.settings, ...(parsed.settings || {}) },
-        games: { ...fresh.games, ...(parsed.games || {}) },
+        games,
         users: (parsed.users || []).map((user) => ({
           ...user,
           dailyReward: user.dailyReward || { lastClaimAt: null, streak: 0 },
-          notifications: user.notifications || [],
+          notifications: (user.notifications || []).map((notification) => ({
+            ...notification,
+            title: notificationTranslations[notification.title] || notification.title,
+          })),
         })),
       };
     } catch {
