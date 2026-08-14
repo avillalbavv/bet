@@ -50,6 +50,8 @@ function route() {
   const path = location.hash.slice(1) || (user() ? "/lobby" : "/");
   closeModal();
   window.scrollTo(0, 0);
+  requestAnimationFrame(() => window.scrollTo(0, 0));
+  setTimeout(() => window.scrollTo(0, 0), 60);
   experience.setScene(path.startsWith("/game/") ? path.split("/").at(-1) : path === "/lobby" ? "lobby" : "landing");
   if (path === "/admin") return renderAdmin();
   if (path.startsWith("/game/")) return user() ? renderGame(path.split("/").at(-1)) : go("/auth");

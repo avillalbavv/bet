@@ -66,10 +66,10 @@ button:disabled{cursor:not-allowed}
 /* Blackjack: las fichas viven en un rail propio, lejos de las acciones. */
 .blackjack-room{min-height:800px!important;padding-top:44px!important;overflow:visible!important}
 .blackjack-table{min-height:720px!important;transform:none!important}
-.dealer-zone{top:38px!important}.player-zone{bottom:225px!important}
+.dealer-zone{top:38px!important}.player-zone{bottom:270px!important}
 .waiting-hand{display:grid!important;place-items:center!important;min-width:230px;border:1px dashed rgba(217,184,115,.3);border-radius:50%;color:#baa77f;font-size:.5rem;letter-spacing:.17em}
-.betting-spot{bottom:168px!important}
-.blackjack-chips{bottom:104px!important;z-index:12!important;pointer-events:none!important}
+.betting-spot{bottom:205px!important}
+.blackjack-chips{bottom:158px!important;z-index:12!important;pointer-events:none!important}
 .blackjack-chips button{pointer-events:auto!important;min-width:46px!important;width:46px!important;height:46px!important}
 .blackjack-controls{left:18px!important;right:18px!important;bottom:14px!important;z-index:11!important;display:grid!important;grid-template-columns:minmax(120px,1.3fr) repeat(6,minmax(78px,1fr))!important;gap:7px!important;padding:12px!important}
 .blackjack-controls button,.blackjack-controls select{min-height:46px!important}
@@ -109,7 +109,7 @@ button:disabled{cursor:not-allowed}
   .featured-game{grid-template-columns:1fr .8fr}
   .blackjack-controls{grid-template-columns:120px repeat(3,1fr)!important}
   .blackjack-controls button:nth-of-type(n+4){grid-row:2}
-  .blackjack-table{min-height:790px!important}.player-zone{bottom:280px!important}.betting-spot{bottom:210px!important}.blackjack-chips{bottom:148px!important}
+  .blackjack-table{min-height:790px!important}.player-zone{bottom:325px!important}.betting-spot{bottom:250px!important}.blackjack-chips{bottom:198px!important}
 }
 
 @media(max-width:1000px){
