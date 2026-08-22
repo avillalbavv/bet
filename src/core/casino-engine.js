@@ -7,19 +7,48 @@ export class CasinoEngine {
     this.database = database;
   }
 
+  getBalance(user) {
+    return Math.max(0, Math.floor(Number(user?.balance) || 0));
+  }
+
+  placeBet(user, game, amount, metadata = {}) {
+    return this.beginRound(user, game, amount, metadata);
+  }
+
+  debitBet(user, amount) {
+    if (!Number.isFinite(amount) || amount <= 0) throw new Error("La apuesta debe ser positiva.");
+    if (this.getBalance(user) < amount) throw new Error("Saldo virtual insuficiente.");
+    user.balance -= amount;
+    return user.balance;
+  }
+
+  creditWin(user, amount) {
+    const safeAmount = Math.max(0, Math.round(Number(amount) || 0));
+    user.balance = this.getBalance(user) + safeAmount;
+    return user.balance;
+  }
+
+  recordTransaction(round, type, amount, balanceAfter) {
+    round.transactions ||= [];
+    round.transactions.push({ id:randomId("tx"), type, amount, balanceAfter, createdAt:new Date().toISOString() });
+  }
+
   beginRound(user, game, amount, metadata = {}) {
     const config = this.database.data.games[game];
     if (!config?.enabled) throw new Error("Este juego está temporalmente desactivado.");
     if (!Number.isFinite(amount) || amount < config.minBet || amount > config.maxBet) throw new Error("Apuesta fuera de los límites configurados.");
     if (amount > user.balance) throw new Error("Saldo virtual insuficiente.");
-    user.balance -= amount;
-    return { id: randomId(game), game, bet: amount, payout: 0, createdAt: new Date().toISOString(), metadata };
+    this.debitBet(user, amount);
+    const round = { id: randomId(game), game, bet: amount, payout: 0, createdAt: new Date().toISOString(), metadata };
+    this.recordTransaction(round, "BET", -amount, user.balance);
+    return round;
   }
 
   addStake(user, round, amount) {
     if (amount <= 0 || user.balance < amount) throw new Error("Saldo virtual insuficiente.");
-    user.balance -= amount;
+    this.debitBet(user, amount);
     round.bet += amount;
+    this.recordTransaction(round, "BET", -amount, user.balance);
   }
 
   settleRound(user, round, payout, metadata = {}) {
@@ -28,7 +57,8 @@ export class CasinoEngine {
     round.multiplier = round.bet ? safePayout / round.bet : 0;
     round.net = safePayout - round.bet;
     round.metadata = { ...round.metadata, ...metadata };
-    user.balance += safePayout;
+    this.creditWin(user, safePayout);
+    this.recordTransaction(round, "PAYOUT", safePayout, user.balance);
     user.stats.totalWagered += round.bet;
     user.stats.totalWon += safePayout;
     user.stats.biggestWin = Math.max(user.stats.biggestWin, safePayout);
@@ -43,6 +73,10 @@ export class CasinoEngine {
     this.addXp(user, Math.min(500, Math.floor(round.bet / 1_000)));
     this.database.save();
     return round;
+  }
+
+  recordGame(user, round, payout, metadata = {}) {
+    return this.settleRound(user, round, payout, metadata);
   }
 
   addXp(user, amount) {
