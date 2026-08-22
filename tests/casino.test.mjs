@@ -7,6 +7,8 @@ import { evaluateSlot, theoreticalSlotRtp, SLOT_SYMBOLS } from "../src/games/noi
 import { resolveRouletteBet, rouletteBetWins, validateRouletteBet, settleRouletteBets, theoreticalRouletteMetrics, simulateRoulette, EUROPEAN_ROULETTE_RTP, AMERICAN_ROULETTE_RTP } from "../src/games/roulette.js";
 import { scoreHand, createShoe } from "../src/games/blackjack.js";
 import { resolveDiceBet, baccaratScore, minesMultiplier, generateCrashPoint } from "../src/games/instant-games.js";
+import { createPlinkoDrop, theoreticalPlinkoRtp, PLINKO_ROWS } from "../src/games/plinko.js";
+import { createProviderRegistry } from "../src/games/catalog.js";
 
 test("secure RNG stays within the requested ranges", () => {
   for (let index = 0; index < 1_000; index += 1) {
@@ -32,6 +34,7 @@ test("wallet never becomes negative and round accounting is consistent", () => {
   engine.settleRound(user,round,2_000);
   assert.equal(user.balance,6_000);
   assert.equal(user.stats.totalWagered,1_000);
+  assert.deepEqual(round.transactions.map((transaction)=>transaction.type),["BET","PAYOUT"]);
 });
 
 test("slot paytable evaluates three matching premium symbols", () => {
@@ -111,4 +114,22 @@ test("los juegos instantáneos mantienen pagos y factores explícitos",()=>{
   assert.ok(minesMultiplier(3)>minesMultiplier(2));
   assert.equal(generateCrashPoint(0),1);
   assert.ok(generateCrashPoint(.9)>=9.69);
+});
+
+test("Plinko fija una trayectoria válida antes de animar y mantiene RTP objetivo",()=>{
+  for(const rows of PLINKO_ROWS){
+    const drop=createPlinkoDrop(rows,()=>1);
+    assert.equal(drop.path.length,rows);
+    assert.equal(drop.bucket,rows);
+    assert.equal(drop.multiplier,drop.multipliers.at(-1));
+    assert.ok(Math.abs(theoreticalPlinkoRtp(rows)-.97)<.004);
+  }
+});
+
+test("el registro omite proveedores externos sin credenciales",async()=>{
+  const registry=createProviderRegistry({zeroXPlaySlotsProxyUrl:"",zeroXPlaySlotsApiUrl:"https://example.invalid",zeroXPlaySlotsApiKey:""});
+  const games=await registry.getGames();
+  assert.equal(games.length,8);
+  assert.ok(games.every(game=>game.isDemo&&game.provider==="noir-originals"));
+  assert.ok(games.some(game=>game.id==="plinko"));
 });

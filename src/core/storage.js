@@ -1,5 +1,5 @@
 const STORAGE_KEY = "noir-casino-platform-v2";
-const VERSION = 4;
+const VERSION = 5;
 
 const DEFAULT_SETTINGS = Object.freeze({
   music: true,
@@ -19,6 +19,7 @@ export const DEFAULT_GAME_CONFIG = Object.freeze({
   slot: { enabled: true, minBet: 1000, maxBet: 250000, name: "NOIR 777" },
   roulette: { enabled: true, minBet: 1000, maxBet: 500000, name: "Ruleta Imperial", variant: "european" },
   blackjack: { enabled: true, minBet: 1000, maxBet: 500000, name: "Blackjack Elite" },
+  plinko: { enabled: true, minBet: 1000, maxBet: 250000, name: "Plinko Prisma" },
   dice: { enabled: true, minBet: 1000, maxBet: 250000, name: "Dados Eléctricos" },
   baccarat: { enabled: true, minBet: 1000, maxBet: 500000, name: "Baccarat Privé" },
   mines: { enabled: true, minBet: 1000, maxBet: 250000, name: "Minas NOIR" },
