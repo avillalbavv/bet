@@ -169,6 +169,7 @@ function renderLobby() {
     <section class="balance-strip"><div><span>SALDO VIRTUAL</span><strong>${money(current.balance)}</strong></div><div><span>NIVEL DE MIEMBRO</span><strong>${current.level} · ${rankLabel(current.rank)}</strong></div><div><span>EXPERIENCIA</span><strong>${current.xp.toLocaleString("es-PY")} XP</strong></div><div><span>GIROS GRATIS</span><strong>${current.freeSpins}</strong></div><button id="claimCredits">OBTENER CRÉDITOS DE PRUEBA</button></section>
     <section class="lobby-lower"><article><div class="rank-orbit"><b>${current.level}</b><i></i></div><div><p class="overline">TU ASCENSO</p><h3>CAMINO A ${current.rank==="GUEST"?"JUGADOR":"PLATA"}</h3><div class="progress"><i style="width:${Math.min(100,current.xp%250/2.5)}%"></i></div><span>${current.xp%250} / 250 XP</span></div></article><article><p class="overline">ÚLTIMA MESA</p><h3>${current.history[0]?`${GAMES.find(game=>game.id===current.history[0].game)?.name||current.history[0].game} · ${money(current.history[0].net)}`:"TU HISTORIAL EMPIEZA ESTA NOCHE"}</h3><button data-go="/profile" class="text-button">ABRIR PERFIL →</button></article></section></section>`, "home");
   bindShell(); bindGameCards();
+  document.querySelector(".catalog-count span").textContent=`${filtered.length} ${filtered.length===1?"JUEGO":"JUEGOS"}`;
   experience.bindParallax(app);
   document.querySelectorAll("[data-category]").forEach(button=>button.onclick=()=>{lobbyCategory=button.dataset.category;renderLobby();});
   document.querySelector("#providerFilter").onchange=event=>{lobbyProvider=event.target.value;renderLobby();};
@@ -486,7 +487,7 @@ function bindShell(){
     cards.forEach(card=>card.hidden=!card.dataset.name.includes(lobbySearch.toLowerCase()));
     const count=document.querySelector(".catalog-count span");
     const title=document.querySelector(".collection-floor .section-heading h2");
-    if(count)count.textContent=`${cards.filter(card=>!card.hidden).length} JUEGOS`;
+    if(count){const visible=cards.filter(card=>!card.hidden).length;count.textContent=`${visible} ${visible===1?"JUEGO":"JUEGOS"}`;}
     if(title)title.textContent=lobbySearch?`RESULTADOS PARA “${lobbySearch}”`:"TODOS LOS JUEGOS";
   };
   search.onkeydown=event=>{if(event.key==="Enter"){event.preventDefault();lobbyCategory="popular";go("/lobby");}};
