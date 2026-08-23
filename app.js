@@ -468,7 +468,29 @@ function closeModal(){modalRoot.innerHTML="";}
 function claimCredits(){const current=user(),now=Date.now(),cooldown=12*60*60*1000,last=current.lastTestCreditAt?Date.parse(current.lastTestCreditAt):0;if(now-last<cooldown)return toast("CRÉDITOS NO DISPONIBLES",`Volvé en ${Math.ceil((cooldown-(now-last))/3600000)} hora(s).`,true);current.balance+=250000;current.lastTestCreditAt=new Date().toISOString();current.notifications.unshift({id:crypto.randomUUID(),title:"CRÉDITOS DE PRUEBA",body:`${money(250000)} acreditados.`,read:false});db.save();closeModal();refreshHeader();toast("CRÉDITOS ACREDITADOS",money(250000)+" virtuales.");}
 
 function bindCommon(){document.querySelectorAll("[data-go]").forEach(button=>button.onclick=()=>{const [path,query]=button.dataset.go.split("?");if(query?.startsWith("cat="))lobbyCategory=query.slice(4);go(path);});document.querySelectorAll("[data-auth]").forEach(button=>button.onclick=()=>{authMode=button.dataset.auth;go("/auth");});}
-function bindShell(){bindCommon();document.querySelector("#walletButton").onclick=showWallet;document.querySelector("#noticeButton").onclick=showNotifications;document.querySelector("#audioButton").onclick=()=>experience.openAudioPanel(modalRoot);document.querySelector("#rewardsButton").onclick=showRewards;document.querySelector("#productRewards").onclick=showRewards;document.querySelector("#challengeButton").onclick=showSocialChallenge;document.querySelector("#mobileRewards")?.addEventListener("click",showRewards);document.querySelector("#logoutButton").onclick=()=>{db.data.sessionUserId=null;db.save();go("/");};document.querySelector("#adminLink").onclick=()=>go("/admin");const search=document.querySelector("#gameSearch");search.oninput=event=>{lobbySearch=event.target.value;document.querySelectorAll("[data-card]").forEach(card=>card.hidden=!card.dataset.name.includes(lobbySearch.toLowerCase()));};search.onkeydown=event=>{if(event.key==="Enter"){event.preventDefault();lobbyCategory="popular";go("/lobby");}};}
+function bindShell(){
+  bindCommon();
+  document.querySelector("#walletButton").onclick=showWallet;
+  document.querySelector("#noticeButton").onclick=showNotifications;
+  document.querySelector("#audioButton").onclick=()=>experience.openAudioPanel(modalRoot);
+  document.querySelector("#rewardsButton").onclick=showRewards;
+  document.querySelector("#productRewards").onclick=showRewards;
+  document.querySelector("#challengeButton").onclick=showSocialChallenge;
+  document.querySelector("#mobileRewards")?.addEventListener("click",showRewards);
+  document.querySelector("#logoutButton").onclick=()=>{db.data.sessionUserId=null;db.save();go("/");};
+  document.querySelector("#adminLink").onclick=()=>go("/admin");
+  const search=document.querySelector("#gameSearch");
+  search.oninput=event=>{
+    lobbySearch=event.target.value;
+    const cards=[...document.querySelectorAll("[data-card]")];
+    cards.forEach(card=>card.hidden=!card.dataset.name.includes(lobbySearch.toLowerCase()));
+    const count=document.querySelector(".catalog-count span");
+    const title=document.querySelector(".collection-floor .section-heading h2");
+    if(count)count.textContent=`${cards.filter(card=>!card.hidden).length} JUEGOS`;
+    if(title)title.textContent=lobbySearch?`RESULTADOS PARA “${lobbySearch}”`:"TODOS LOS JUEGOS";
+  };
+  search.onkeydown=event=>{if(event.key==="Enter"){event.preventDefault();lobbyCategory="popular";go("/lobby");}};
+}
 function refreshHeader(){const pill=document.querySelector("#walletButton span");if(pill)experience.animateNumber(pill,user().balance,"Gs. ");}
 function toast(title,body,error=false){experience.audio.play(error?"error":"click");const node=document.createElement("article");node.className="toast "+(error?"error":"");node.innerHTML=`<i></i><b>${escapeHtml(title)}</b><span>${escapeHtml(body)}</span>`;document.querySelector("#toastRoot").appendChild(node);setTimeout(()=>node.remove(),4200);}
 function debugPanel(){const variant=db.data.games.roulette.variant||"european",metrics=theoreticalRouletteMetrics(variant);return `<details class="debug-panel"><summary>MODO DE DEPURACIÓN</summary><pre>RNG seguro: crypto.getRandomValues\nRTP teórico del slot: ${(theoreticalSlotRtp()*100).toFixed(4)}%\nruleta: ${ROULETTE_VARIANTS[variant].label}\nprobabilidad por casilla: 1 / ${metrics.pockets}\nRTP teórico de ruleta: ${(metrics.rtp*100).toFixed(4)}%\njuego actual: ${currentGame}\nid de usuario: ${user().id}</pre></details>`;}
